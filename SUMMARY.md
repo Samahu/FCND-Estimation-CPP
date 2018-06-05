@@ -133,6 +133,35 @@ QVelXYStd = .15     // original value was .05
 ## Step 4: Magnetometer Update ##
 
 ### Tuning QYawStd ###
-QYawStd = 0.05  // left unchaged
+QYawStd = .1  // original value was .05
 
 ### UpdateFromMag Implementation ###
+
+hPrime is basically [0 0 0 0 0 0 1] while zFromeX can be obtained from ekfState(6).
+I also address the cases when one of the measurements switches sign when it exceeds 180 degrees either way. 
+
+```
+////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+
+hPrime(6) = 1;  // the rest are zeros
+
+zFromX(0) = ekfState(6);
+
+// printf("measured: %f, estimated: %f\n", magYaw, ekfState(6));
+
+// Normailze the error between z, zFromX
+const auto epsilon = F_PI;
+auto error = z - zFromX;
+
+if (fabsf(error(0)) > epsilon)
+{
+// Normailzation Required
+if (z(0) < 0 && zFromX(0) > 0)
+z(0) += 2 * F_PI;
+
+if (zFromX(0) < 0 && z(0) > 0)
+zFromX(0) += 2 * F_PI;
+}
+
+/////////////////////////////// END STUDENT CODE ////////////////////////////
+```

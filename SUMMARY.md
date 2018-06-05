@@ -15,7 +15,7 @@ MeasuredStdDev_AccelXY = 0.512158
 
 The calculated standard deviation correctly capturea ~68% of the sensor measurements and the tests pass.
 
-### A better rate gyro attitude integration scheme ###
+### UpdateFromIMU ###
 
 I have followed the details outlined in the `Estimation for Quadrotors` document. The idea is to use quaternions when performing the predict step for the attitude estimation. First I convert the estimated roll, pitch, and yaw into a quaternion and also create another quaternion that holds measured body rates from the IMU. Multiplying these two quaternions yeilds a new quaternions that represent the predicted values. Finally I use supplied quaternion methods to extract Pitch, Roll and Yaw values. then pass Pitch and Roll to the Complementary Filter as before.
 
@@ -36,3 +36,4 @@ if (ekfState(6) < -F_PI) ekfState(6) += 2.f*F_PI;
 
 /////////////////////////////// END STUDENT CODE ////////////////////////////
 ```
+### PredictState ###

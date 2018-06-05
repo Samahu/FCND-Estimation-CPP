@@ -98,8 +98,7 @@ void QuadEstimatorEKF::UpdateFromIMU(V3F accel, V3F gyro)
 //  ekfState(6) = ekfState(6) + dtIMU * gyro.z;    // yaw
   
   auto qt = Quaternion<float>::FromEuler123_RPY(rollEst, pitchEst, ekfState(6));
-  auto dq = Quaternion<float>::FromEuler123_RPY(dtIMU * gyro.x, dtIMU * gyro.y, dtIMU * gyro.z);
-  auto qt_bar = dq * qt;
+  auto qt_bar = qt.IntegrateBodyRate(gyro, dtIMU);
   
   auto predictedRoll = qt_bar.Roll();
   auto predictedPitch = qt_bar.Pitch();
@@ -169,8 +168,61 @@ VectorXf QuadEstimatorEKF::PredictState(VectorXf curState, float dt, V3F accel, 
   Quaternion<float> attitude = Quaternion<float>::FromEuler123_RPY(rollEst, pitchEst, curState(6));
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+  
+  
+  VectorXf A(QUAD_EKF_NUM_STATES); // A Term
+  VectorXf B(QUAD_EKF_NUM_STATES); // B Term
+  
+  A(0) = curState(0) + curState(3) * dt;
+  A(1) = curState(1) + curState(4) * dt;
+  A(2) = curState(2) + curState(5) * dt;
+  A(3) = curState(3);
+  A(4) = curState(4);
+  A(5) = curState(5) - float(CONST_GRAVITY) * dt;
+  A(6) = curState(6);
 
+#if true  // USE SUPPLIED QUATERNION TO SOLVE
+  
+  auto accelG = attitude.Rotate_BtoI(accel);
+  B.setZero();
+  B(3) = accelG.x * dt;
+  B(4) = accelG.y * dt;
+  B(5) = accelG.z * dt;
+  
+#else   // CONSTRUCT ROTATION MATRIX ACCORDING TO NOTES
+  
+  // Rotation Matrix (Body Frame to Global Frame)
+  MatrixXf Rbg(3, 3);
+  auto θ = pitchEst, φ = rollEst, ψ = curState(6);
+  Rbg(0, 0) = cos(θ) * cos(ψ);
+  Rbg(0, 1) = sin(φ) * sin(θ) * cos(ψ) - cos(φ) * sin(ψ);
+  Rbg(0, 2) = cos(φ) * sin(θ) * cos(ψ) + sin(φ) * sin(ψ);
+  Rbg(1, 0) = cos(θ) * sin(ψ);
+  Rbg(1, 1) = sin(φ) * sin(θ) * sin(ψ) + cos(φ) * cos(ψ);
+  Rbg(1, 2) = cos(φ) * sin(θ) * sin(ψ) - sin(φ) * cos(ψ);
+  Rbg(2, 0) = -sin(θ);
+  Rbg(2, 1) = cos(θ) * sin(φ);
+  Rbg(2, 2) = cos(θ) * cos(φ);
+  
+  // Control Vector
+  VectorXf u_t(4);
+  u_t(0) = accel.x;
+  u_t(1) = accel.y;
+  u_t(2) = accel.z;
+  u_t(3) = gyro.z;
+  
+  auto b = MatrixXf(QUAD_EKF_NUM_STATES, 4);
+  b.setZero();
+  b(3, 0) = Rbg(0, 0); b(3, 1) = Rbg(0, 1); b(3, 2) = Rbg(0, 2);
+  b(4, 0) = Rbg(1, 0); b(4, 1) = Rbg(1, 1); b(4, 2) = Rbg(1, 2);
+  b(5, 0) = Rbg(2, 0); b(5, 1) = Rbg(2, 1); b(5, 2) = Rbg(2, 2);
+  // b(6, 3) = 1; // comment out so we don't integrate yaw one more time
+  B = b * (u_t * dt);
+  
+#endif
 
+  predictedState = A + B;
+  
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
   return predictedState;

@@ -1,7 +1,7 @@
 ### STUDENT SECTION
 
-MeasuredStdDev_GPSPosXY = 2
-MeasuredStdDev_AccelXY = .1
+MeasuredStdDev_GPSPosXY = 0.717664  # Processed using iOS Numbers on more than 98% of the simulation data
+MeasuredStdDev_AccelXY = 0.512158   # Processed using iOS Numbers on more than 98% of the simulation data
 
 ### END STUDENT SECTION
 

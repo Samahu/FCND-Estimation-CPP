@@ -1,6 +1,6 @@
 #  Estimation Project Writeup
 
-## Implementation Details ##
+## Step 1: Sensor Noise ##
 
 ### Compute StdDev for GPS and Accelerometer data ###
 
@@ -15,7 +15,9 @@ MeasuredStdDev_AccelXY = 0.512158
 
 The calculated standard deviation correctly capturea ~68% of the sensor measurements and the tests pass.
 
-### UpdateFromIMU ###
+## Step 2: Attitude Estimation ##
+
+### UpdateFromIMU Implementation ###
 
 I have followed the details outlined in the `Estimation for Quadrotors` document. The idea is to use quaternions when performing the predict step for the attitude estimation. First I convert the estimated roll, pitch, and yaw into a quaternion and also create another quaternion that holds measured body rates from the IMU. Multiplying these two quaternions yeilds a new quaternions that represent the predicted values. Finally I use supplied quaternion methods to extract Pitch, Roll and Yaw values. then pass Pitch and Roll to the Complementary Filter as before.
 
@@ -36,7 +38,10 @@ if (ekfState(6) < -F_PI) ekfState(6) += 2.f*F_PI;
 
 /////////////////////////////// END STUDENT CODE ////////////////////////////
 ```
-### PredictState ###
+
+## Step 3: Prediction Step ##
+
+### PredictState Implementation ###
 
 
 I have implemented the prediction step as indicated below. I construct two terms A and B. Term A is straighforward and mainly updates the position. Term B defines the velocity update values. I use the supplied quaternion to transform the control/acceleration vector from Body Frame to Intertial Frame. The sum of A and B represents the predictedState.
@@ -74,7 +79,7 @@ predictedState = A + B;
 
 /////////////////////////////// END STUDENT CODE ////////////////////////////
 ```
-### RbgPrime ###
+### RbgPrime Implementation ###
 
 A correct calculation of the Rgb prime matrix.
 
@@ -94,7 +99,7 @@ RbgPrime(1, 2) = cos(φ) * sin(θ) * cos(ψ) + sin(φ) * sin(ψ);
 /////////////////////////////// END STUDENT CODE ////////////////////////////
 ```
 
-### Predict ###
+### Predict Implementation ###
 
 The following part uses RbgPrime and control input (acceleration) to first construct gPrime Jacobian matrix.
 Using the result it updates the state covariance according to the classic EKF update equation.
@@ -120,6 +125,14 @@ ekfCov = gPrime * ekfCov * gPrime.transpose() + Q;
 /////////////////////////////// END STUDENT CODE ////////////////////////////
 ```
 
-### Tuning Covariance Updatre ###
+### Tuning Covariance Update ###
 QPosXYStd = 0.05  // left unchanged
 QVelXYStd = .15     // original value was .05
+
+
+## Step 4: Magnetometer Update ##
+
+### Tuning QYawStd ###
+QYawStd = 0.05  // left unchaged
+
+### UpdateFromMag Implementation ###

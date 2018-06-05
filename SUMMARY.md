@@ -37,3 +37,87 @@ if (ekfState(6) < -F_PI) ekfState(6) += 2.f*F_PI;
 /////////////////////////////// END STUDENT CODE ////////////////////////////
 ```
 ### PredictState ###
+
+
+I have implemented the prediction step as indicated below. I construct two terms A and B. Term A is straighforward and mainly updates the position. Term B defines the velocity update values. I use the supplied quaternion to transform the control/acceleration vector from Body Frame to Intertial Frame. The sum of A and B represents the predictedState.
+
+In additon to the above I made the same implementation by directly incorporating the rotation matrix (to compare results) but I have omitted this part out from the writup.
+
+```
+////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+
+VectorXf A(QUAD_EKF_NUM_STATES); // A Term
+VectorXf B(QUAD_EKF_NUM_STATES); // B Term
+
+A(0) = curState(0) + curState(3) * dt;
+A(1) = curState(1) + curState(4) * dt;
+A(2) = curState(2) + curState(5) * dt;
+A(3) = curState(3);
+A(4) = curState(4);
+A(5) = curState(5) - float(CONST_GRAVITY) * dt;
+A(6) = curState(6);
+
+#if true  // USE SUPPLIED QUATERNION TO SOLVE
+
+auto accelG = attitude.Rotate_BtoI(accel);
+B.setZero();
+B(3) = accelG.x * dt;
+B(4) = accelG.y * dt;
+B(5) = accelG.z * dt;
+
+#else   // CONSTRUCT ROTATION MATRIX ACCORDING TO NOTES
+  ...
+  ...
+#endif
+
+predictedState = A + B;
+
+/////////////////////////////// END STUDENT CODE ////////////////////////////
+```
+### RbgPrime ###
+
+A correct calculation of the Rgb prime matrix.
+
+```
+////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+
+auto θ = pitch, φ = roll, ψ = yaw;
+RbgPrime(0, 0) = - cos(θ) * sin(ψ);
+RbgPrime(0, 1) = - sin(φ) * sin(θ) * sin(ψ) - cos(φ) * cos(ψ);
+RbgPrime(0, 2) = - cos(φ) * sin(θ) * sin(ψ) + sin(φ) * cos(ψ);
+RbgPrime(1, 0) = cos(θ) * cos(ψ);
+RbgPrime(1, 1) = sin(φ) * sin(θ) * cos(ψ) - cos(φ) * sin(ψ);
+RbgPrime(1, 2) = cos(φ) * sin(θ) * cos(ψ) + sin(φ) * sin(ψ);
+
+// Last row is all zeros which is already set
+
+/////////////////////////////// END STUDENT CODE ////////////////////////////
+```
+
+### Predict ###
+
+The following part uses RbgPrime and control input (acceleration) to first construct gPrime Jacobian matrix.
+Using the result it updates the state covariance according to EKF update step.
+
+```
+////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+
+VectorXf u_t(3);
+u_t(0) = accel.x;
+u_t(1) = accel.y;
+u_t(2) = accel.z;
+auto j = RbgPrime * u_t * dt;
+
+gPrime(0, 3) = dt;
+gPrime(1, 4) = dt;
+gPrime(2, 5) = dt;
+gPrime(3, 6) = j(0);
+gPrime(4, 6) = j(1);
+gPrime(5, 6) = j(2);
+
+ekfCov = gPrime * ekfCov * gPrime.transpose() + Q;
+
+/////////////////////////////// END STUDENT CODE ////////////////////////////
+```
+
+The acceleration should be accounted for as a command in the calculation of gPrime. The covariance update should follow the classic EKF update equation

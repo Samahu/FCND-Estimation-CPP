@@ -97,7 +97,7 @@ RbgPrime(1, 2) = cos(φ) * sin(θ) * cos(ψ) + sin(φ) * sin(ψ);
 ### Predict ###
 
 The following part uses RbgPrime and control input (acceleration) to first construct gPrime Jacobian matrix.
-Using the result it updates the state covariance according to EKF update step.
+Using the result it updates the state covariance according to the classic EKF update equation.
 
 ```
 ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
@@ -120,4 +120,6 @@ ekfCov = gPrime * ekfCov * gPrime.transpose() + Q;
 /////////////////////////////// END STUDENT CODE ////////////////////////////
 ```
 
-The acceleration should be accounted for as a command in the calculation of gPrime. The covariance update should follow the classic EKF update equation
+### Tuning Covariance Updatre ###
+QPosXYStd = 0.05  // left unchanged
+QVelXYStd = .15     // original value was .05

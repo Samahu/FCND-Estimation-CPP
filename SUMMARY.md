@@ -185,7 +185,53 @@ Pretty straight forward, I construct hPrime and then copy all ekfState values (e
 
 /////////////////////////////// END STUDENT CODE ////////////////////////////
 ```
-For the tuning I only increased `QPosZStd` from .05 to .1 which seem to yeild slightly better results.
+For the tuning part I only increased `QPosZStd` from .05 to .1 which seem to yeild slightly better results.
 
 
 ## Step 6: Adding Your Controller ##
+
+I have replaced both QuadControl.cpp and QuadControlParams.txt with the versions I had from previous project.
+Runing scenario 11 it still passes the criteria.
+
+### Tuning ###
+I have reduced all previous settings by 30% from their previous values.
+
+Old Values:
+```
+# Position control gains
+kpPosXY = 2.5
+kpPosZ = 2.5
+KiPosZ = 50
+
+# Velocity control gains
+kpVelXY = 11
+kpVelZ = 8
+
+# Angle control gains
+kpBank = 12
+kpYaw = 3
+
+# Angle rate gains
+kpPQR = 75, 75, 15
+```
+
+New Values
+```
+# Position control gains
+kpPosXY = 1.8
+kpPosZ = 1.8
+KiPosZ = 35
+
+# Velocity control gains
+kpVelXY = 8
+kpVelZ = 5.5
+
+# Angle control gains
+kpBank = 9
+kpYaw = 2
+
+# Angle rate gains
+kpPQR = 50, 50, 10
+```
+
+The drone performs as expected with scenario 11 shows a passing states.

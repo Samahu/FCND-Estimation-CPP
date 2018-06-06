@@ -21,7 +21,7 @@ The calculated standard deviation correctly capturea ~68% of the sensor measurem
 
 I have followed the details outlined in the `Estimation for Quadrotors` document. The idea is to use quaternions when performing the predict step for the attitude estimation. First I convert the estimated roll, pitch, and yaw into a quaternion and also create another quaternion that holds measured body rates from the IMU. Multiplying these two quaternions yeilds a new quaternions that represent the predicted values. Finally I use supplied quaternion methods to extract Pitch, Roll and Yaw values. then pass Pitch and Roll to the Complementary Filter as before.
 
-```
+```C++
 ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
   auto qt = Quaternion<float>::FromEuler123_RPY(rollEst, pitchEst, ekfState(6));

@@ -48,7 +48,7 @@ I have implemented the prediction step as indicated below. I construct two terms
 
 In additon to the above I made the same implementation by directly incorporating the rotation matrix (to compare results) but I have omitted this part out from the writup.
 
-```
+```C++
 ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
   VectorXf A(QUAD_EKF_NUM_STATES); // A Term
@@ -83,7 +83,7 @@ In additon to the above I made the same implementation by directly incorporating
 
 A correct calculation of the Rgb prime matrix.
 
-```
+```C++
 ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
   auto θ = pitch, φ = roll, ψ = yaw;
@@ -104,7 +104,7 @@ A correct calculation of the Rgb prime matrix.
 The following part uses RbgPrime and control input (acceleration) to first construct gPrime Jacobian matrix.
 Using the result it updates the state covariance according to the classic EKF update equation.
 
-```
+```C++
 ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
   VectorXf u_t(3);
@@ -140,7 +140,7 @@ QYawStd = .1  // original value was .05
 hPrime is basically [0 0 0 0 0 0 1] while zFromeX can be obtained from ekfState(6).
 I also address the cases when one of the measurements switches sign when it exceeds 180 degrees either way. 
 
-```
+```C++
 ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
   hPrime(6) = 1;  // the rest are zeros
@@ -174,7 +174,7 @@ First thing I followed instructions to disable the Quad Ideal Estimator (by sett
 
 Pretty straight forward, I construct hPrime and then copy all ekfState values (except yaw) to the zFromX vector.
 
-```
+```C++
 ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
   for (auto i = 0; i < 6; ++i)

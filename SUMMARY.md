@@ -186,3 +186,6 @@ Pretty straight forward, I construct hPrime and then copy all ekfState values (e
 /////////////////////////////// END STUDENT CODE ////////////////////////////
 ```
 For the tuning I only increased `QPosZStd` from .05 to .1 which seem to yeild slightly better results.
+
+
+## Step 6: Adding Your Controller ##
